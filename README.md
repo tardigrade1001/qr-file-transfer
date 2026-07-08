@@ -35,15 +35,13 @@ Each QR carries a small header, `QRT2|fileId|page|total|filename|data`, so the r
 
 *(the origin story, for the curious)*
 
-The lab has a Hitachi F-4600 fluorescence spectrophotometer. It runs on a Windows 7 PC that stays off the network, has no free USB port cleared for use, and that IT would rather nobody touch. For years the only way data left that machine was a USB stick carried over by hand.
+The lab has a Hitachi F-4600 fluorescence spectrophotometer on a Windows 7 PC that stays off the network, has no free USB port, and that IT would rather nobody touch. Data left that machine on a USB stick, carried by hand.
 
-One evening a run finished and the stick was gone from the pocket. It sat at a desk in another part of the building. The data was a 7 KB text file showing right there on the screen, and getting it meant a walk there and back for a cable.
+One evening a run finished and the stick was gone from the pocket. It sat at a desk across the building. The data was a 7 KB text file, right there on the screen, and reaching it meant a walk both ways for a cable.
 
-So the thought arrived while standing there. The file is visible. Every character can be read off the screen by eye. There has to be a way to move something readable off a screen without fetching a wire.
+The idea came from an earlier build, a small membership website ([kalyanparisad.in](https://kalyanparisad.in)) that draws a UPI payment QR in the browser from a line of text. A QR is text rendered as a picture, made on the spot, no image file anywhere. That scales. Many QR codes in sequence can carry a whole file. The screen was already there. A phone camera was already there.
 
-Then it clicked. A QR code is text that a camera can point at. If one QR holds a line, a stream of them holds a file. The instrument PC already has a screen. A phone already has a camera. Nothing else is needed.
-
-qrbeam is that idea taken seriously. The offline machine paints the file across a handful of QR codes, a camera reads them back, and the file reassembles on the far side. No USB. No network between the two. Nothing installed on the locked-down PC.
+qrbeam is that taken seriously. The offline machine paints the file across a handful of QR codes, a camera reads them back, and the file reassembles on the far side. No USB. No network between the two. Nothing installed on the locked-down PC.
 
 > For the other escape hatch on the same instrument, reading the proprietary binary files straight off disk, see [**spectrex**](https://github.com/tardigrade1001/spectrex).
 
