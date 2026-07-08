@@ -31,6 +31,22 @@ Each QR carries a small header — `QRT2|fileId|page|total|filename|data` — so
 
 ---
 
+## How this came to be
+
+*(the origin story, for the curious)*
+
+Our lab has a Hitachi F-4600 fluorescence spectrophotometer. It runs on a Windows 7 PC that isn't on the network, has no free USB port I'm meant to use, and that IT would rather nobody touch. For years, the only way data ever left that machine was on a USB stick I carried over.
+
+One evening I finished a run, reached for the stick — and it wasn't in my pocket. It was at my desk, in another part of the building. The data was a 7 KB text file sitting right there on the screen, and getting it meant a walk there and back for a cable.
+
+So I stood there thinking: the file is *right in front of me*. I can see every character of it with my own eyes. There has to be a way to move something I can literally read off a screen, without fetching a wire.
+
+Then it clicked — a QR code is just text you point a camera at. If one QR holds a line, a stream of them holds a file. The instrument PC already has a screen; my phone already has a camera. Nothing else is needed.
+
+qrbeam is that idea taken seriously: the offline machine paints the file across a handful of QR codes, a camera reads them back, and the file reassembles on the other side — no USB, no network between the two, nothing installed on the locked-down PC.
+
+> If you want the *other* escape hatch for the same instrument — reading its proprietary binary files directly instead of the screen — that's my [**spectrex**](https://github.com/tardigrade1001/spectrex).
+
 ## Usage
 
 **On the source machine (offline):**
