@@ -10,6 +10,20 @@ The first use was pulling data exports off an air-gapped Windows 7 lab instrumen
 
 ---
 
+## In action
+
+<p align="center">
+  <img src="docs/screenshots/sender-workflow.jpg" alt="The offline sender building a three-page QR transfer" width="440">
+  <img src="docs/screenshots/receiver-start.jpg" alt="The hosted receiver open on a phone" width="300">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/receiver-progress.jpg" alt="The phone receiver capturing two of three QR pages" width="280">
+  <img src="docs/screenshots/receiver-verified.jpg" alt="The verified transfer and downloaded file on the phone" width="280">
+</p>
+
+---
+
 ## How it works
 
 qrbeam has two halves that never share a network. The only link is a camera looking at a screen.
@@ -98,6 +112,10 @@ qrbeam/
 ├── receiver/
 │   ├── index.html         # hosted receiver, deploy this folder (Netlify, etc.)
 │   └── QR-Transfer.html   # deploy copy of the offline sender, offered as a direct download
+├── docs/
+│   └── screenshots/       # README screenshots
+├── examples/
+│   └── qrbeam-demo.csv    # small graph-data transfer example
 ├── tests/
 │   └── protocol-roundtrip.test.js
 ├── README.md
@@ -115,5 +133,3 @@ The idea, requirements, lab knowledge, and direction came from me. The protocol 
 ## License
 
 MIT. Use it, fork it, adapt it, share it. See [LICENSE](LICENSE). Bundled libraries keep separate licenses (MIT and Apache-2.0).
-
-<!-- TODO: add screenshots / a demo GIF here (sender screen + phone catching pages) -->
