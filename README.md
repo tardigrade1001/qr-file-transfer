@@ -12,14 +12,32 @@ The first use was pulling data exports off an air-gapped Windows 7 lab instrumen
 
 ## In action
 
-<p align="center">
-  <img src="docs/screenshots/sender-workflow.jpg" alt="The offline sender building a three-page QR transfer" width="440">
-  <img src="docs/screenshots/receiver-start.jpg" alt="The hosted receiver open on a phone" width="300">
-</p>
+### 1. Build on the offline computer
 
 <p align="center">
-  <img src="docs/screenshots/receiver-progress.jpg" alt="The phone receiver capturing two of three QR pages" width="280">
-  <img src="docs/screenshots/receiver-verified.jpg" alt="The verified transfer and downloaded file on the phone" width="280">
+  <img src="docs/screenshots/sender-workflow.jpg" alt="The offline sender building a three-page QR transfer" width="480"><br>
+  <sub>A small CSV becomes a three-page QR loop on the source computer.</sub>
+</p>
+
+### 2. Open the receiver on a phone
+
+<p align="center">
+  <img src="docs/screenshots/receiver-start.jpg" alt="The hosted receiver open on a phone" width="340"><br>
+  <sub>The hosted page starts the camera and offers the offline sender as a direct download.</sub>
+</p>
+
+### 3. Capture the QR pages
+
+<p align="center">
+  <img src="docs/screenshots/receiver-progress.jpg" alt="The phone receiver capturing two of three QR pages" width="260"><br>
+  <sub>The receiver fills the page grid and names the page still missing.</sub>
+</p>
+
+### 4. Verify and download
+
+<p align="center">
+  <img src="docs/screenshots/receiver-verified.jpg" alt="The verified transfer and downloaded file on the phone" width="260"><br>
+  <sub>The receiver checks the rebuilt file, then the phone downloads it.</sub>
 </p>
 
 ---
