@@ -108,8 +108,12 @@ Deploy the **`receiver`** folder to any static host with HTTPS. The receiver URL
 
 ---
 
+## Credits
+
+The idea, requirements, lab knowledge, and direction came from me. The protocol design, browser implementation, and refinement were produced collaboratively with [Claude](https://claude.ai/) and [OpenAI Codex](https://openai.com/codex/) as AI coding assistants across separate sessions. Verification at every step relied on small files and CSV exports I generated from the offline instrument PC.
+
 ## License
 
-MIT, 2026 Uddipan. See [LICENSE](LICENSE). Bundled libraries keep separate licenses (MIT and Apache-2.0).
+MIT. Use it, fork it, adapt it, share it. See [LICENSE](LICENSE). Bundled libraries keep separate licenses (MIT and Apache-2.0).
 
 <!-- TODO: add screenshots / a demo GIF here (sender screen + phone catching pages) -->
