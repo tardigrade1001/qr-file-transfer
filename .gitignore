@@ -10,3 +10,4 @@ desktop.ini
 scratch/
 *.log
 node_modules/
+_backups/

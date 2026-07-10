@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>qrbeam — scan &amp; download</title>
-<meta name="description" content="Beam tiny text files from a screen to your phone by QR — no cable, no USB, no app.">
-<meta name="theme-color" content="#FFFBF2">
+<meta name="description" content="Beam small files from a screen to your phone by QR — no cable, no USB, no app.">
+<meta name="theme-color" content="#141019">
 <style>
-  /* Vibrant Summer palette — coral / gold / lime / steel-blue / grape on warm cream */
+  /* Vibrant Summer palette — coral / gold / lime / steel-blue / grape on dark charcoal */
   :root{
-    --bg:#FFFBF2; --panel:#FFFFFF; --line:#EFE6D5; --txt:#2E2740; --mut:#7C7392;
-    --acc:#1982C4; --coral:#FF595E; --grape:#6A4C93; --ok:#8AC926; --gold:#FFCA3A;
-    --ok-txt:#5C9400; --warn-txt:#B07A00; --miss:#F0EAF7;
+    --bg:#141019; --panel:#1E1926; --line:#2E2838; --txt:#ECE7F2; --mut:#9E95AE;
+    --acc:#3AA0DE; --coral:#FF6B70; --grape:#C3A6E8; --ok:#8AC926; --gold:#FFCA3A;
+    --ok-txt:#A5E05A; --warn-txt:#FFCA3A; --miss:#2A2436; --ghost:#2A2436; --ghostline:#3A3350;
   }
   *{ box-sizing:border-box; }
   body{ margin:0; font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--txt); }
@@ -21,8 +21,8 @@
   header .sub{ color:var(--mut); font-size:11px; }
   main{ max-width:640px; margin:0 auto; padding:10px; }
   .panel{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 1px 3px rgba(106,76,147,.06); }
-  button{ font:inherit; background:var(--acc); color:#fff; border:0; border-radius:10px; padding:11px 16px; cursor:pointer; font-weight:700; width:100%; }
-  button.ghost{ background:#F3EEFA; color:var(--grape); border:1px solid #E5DAF3; }
+  button,.buttonlink{ font:inherit; background:var(--acc); color:#fff; border:0; border-radius:10px; padding:11px 16px; cursor:pointer; font-weight:700; width:100%; display:block; text-align:center; text-decoration:none; }
+  button.ghost,.buttonlink.ghost{ background:var(--ghost); color:var(--grape); border:1px solid var(--ghostline); }
   button:disabled{ opacity:.4; cursor:not-allowed; }
   #startBtn{ background:var(--coral); box-shadow:0 3px 10px rgba(255,89,94,.35); }
   #downloadBtn{ background:var(--ok); color:#1f3d00; }
@@ -30,13 +30,15 @@
   video{ width:100%; max-height:34vh; object-fit:cover; display:block; }
   .scanline{ position:absolute; left:8%; right:8%; top:0; height:3px; background:var(--coral); box-shadow:0 0 8px var(--coral); animation:scan 2.2s linear infinite; }
   @keyframes scan{ 0%{top:6%} 50%{top:94%} 100%{top:6%} }
-  .bar{ height:10px; background:#F0EAF7; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:8px 0; }
+  .bar{ height:10px; background:#171320; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:8px 0; }
   .bar > i{ display:block; height:100%; width:0; background:var(--ok); transition:width .2s; }
   .grid{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; max-height:22vh; overflow:auto; }
-  .cell{ min-width:26px; height:22px; padding:0 5px; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:6px; background:var(--miss); color:var(--mut); }
+  .cell{ min-width:26px; height:22px; padding:0 5px; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:6px; background:var(--miss); color:var(--mut); transition:transform .16s ease, background .16s ease, box-shadow .16s ease; }
   .cell.have{ background:var(--ok); color:#1f3d00; font-weight:800; }
+  .cell.flash{ transform:scale(1.18); box-shadow:0 0 0 3px rgba(255,202,58,.24),0 0 16px rgba(138,201,38,.4); }
   .meta{ color:var(--mut); font-size:12px; }
   .big{ font-size:16px; font-weight:800; margin:2px 0; color:var(--grape); }
+  .badge{ display:none; margin-top:8px; padding:6px 10px; border-radius:999px; background:rgba(138,201,38,.14); border:1px solid rgba(138,201,38,.55); color:var(--ok-txt); font-size:12px; font-weight:800; }
   .ok{ color:var(--ok-txt); }
   .warn{ color:var(--warn-txt); }
   #qrself{ background:#fff; padding:10px; border-radius:10px; display:inline-block; border:1px solid var(--line); }
@@ -56,7 +58,9 @@
 
   <div class="panel">
     <button id="startBtn">▶ Start camera</button>
+    <a class="buttonlink ghost" href="./QR-Transfer.html" download="qrbeam-sender.html" style="margin-top:8px;">Download offline sender</a>
     <div id="videowrap"><video id="video" playsinline muted></video><div class="scanline"></div></div>
+    <button id="stopBtn" class="ghost" style="display:none;margin-top:8px;">Stop camera</button>
     <p id="camhint" class="meta" style="margin:10px 0 0;">Tap <b>Start camera</b>, allow access, then aim at the QR codes cycling on the instrument PC.</p>
     <p id="camerr" class="warn" style="display:none;margin:10px 0 0;"></p>
   </div>
@@ -66,6 +70,8 @@
     <div class="meta" id="fileline"></div>
     <div class="bar"><i id="barfill"></i></div>
     <div class="grid" id="grid"></div>
+    <div class="meta" id="missingline" style="margin-top:8px;"></div>
+    <div id="verifiedBadge" class="badge">Verified exact copy</div>
     <button id="downloadBtn" style="margin-top:14px;" disabled>Download file</button>
     <button id="resetBtn" class="ghost" style="margin-top:8px;">Reset / start a new file</button>
   </div>
@@ -12485,20 +12491,69 @@ var qrcode = function() {
 <script>
 (function(){
   var $ = function(id){ return document.getElementById(id); };
-  var video = $('video'), videowrap = $('videowrap'), startBtn = $('startBtn');
+  var video = $('video'), videowrap = $('videowrap'), startBtn = $('startBtn'), stopBtn = $('stopBtn');
   var progress = $('progress'), statusline = $('statusline'), fileline = $('fileline');
-  var barfill = $('barfill'), grid = $('grid'), downloadBtn = $('downloadBtn'), resetBtn = $('resetBtn');
+  var barfill = $('barfill'), grid = $('grid'), missingline = $('missingline'), verifiedBadge = $('verifiedBadge'), downloadBtn = $('downloadBtn'), resetBtn = $('resetBtn');
   var camerr = $('camerr'), camhint = $('camhint');
 
-  var stream = null, scanning = false;
+  var stream = null, scanning = false, startingCamera = false;
+  var rafId = null, lastDecodeAt = 0, cameraToken = 0;
+  var DECODE_INTERVAL = 100; // 10 scans/sec is ample for the default 1200 ms sender pages
+  var MAX_PAGES = 500;
+  var MAX_FRAME_DATA = 5000;
+  var MAX_RECEIVE_BYTES = 1024 * 1024;
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d', { willReadFrequently:true });
 
   var store = {};        // page(1-based) -> base64 data slice
-  var fileId = null, total = 0, fileName = "transfer.bin";
+  var fileId = null, total = 0, fileName = "transfer.bin", expectedBytes = null, expectedHash = "";
   var downloaded = false; // auto-download guard
 
   function decodeName(b){ try{ return decodeURIComponent(escape(atob(b))); }catch(e){ try{ return atob(b); }catch(e2){ return "transfer.bin"; } } }
+
+  function sha256Hex(bytes){
+    var K = [
+      0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+    ];
+    var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+    var l = bytes.length, bitHi = Math.floor(l / 0x20000000), bitLo = (l << 3) >>> 0;
+    var withOne = l + 1, zeroPad = (withOne % 64 <= 56) ? (56 - withOne % 64) : (120 - withOne % 64);
+    var msg = new Uint8Array(withOne + zeroPad + 8);
+    msg.set(bytes); msg[l] = 0x80;
+    var dv = new DataView(msg.buffer), w = new Array(64);
+    dv.setUint32(msg.length - 8, bitHi); dv.setUint32(msg.length - 4, bitLo);
+    function rotr(x,n){ return (x >>> n) | (x << (32 - n)); }
+    for(var i=0;i<msg.length;i+=64){
+      for(var j=0;j<16;j++){ w[j] = dv.getUint32(i + j * 4); }
+      for(j=16;j<64;j++){
+        var s0 = rotr(w[j-15],7) ^ rotr(w[j-15],18) ^ (w[j-15] >>> 3);
+        var s1 = rotr(w[j-2],17) ^ rotr(w[j-2],19) ^ (w[j-2] >>> 10);
+        w[j] = (w[j-16] + s0 + w[j-7] + s1) >>> 0;
+      }
+      var a=H[0], b=H[1], c=H[2], d=H[3], e=H[4], f=H[5], g=H[6], h=H[7];
+      for(j=0;j<64;j++){
+        var S1 = rotr(e,6) ^ rotr(e,11) ^ rotr(e,25);
+        var ch = (e & f) ^ ((~e) & g);
+        var t1 = (h + S1 + ch + K[j] + w[j]) >>> 0;
+        var S0 = rotr(a,2) ^ rotr(a,13) ^ rotr(a,22);
+        var maj = (a & b) ^ (a & c) ^ (b & c);
+        var t2 = (S0 + maj) >>> 0;
+        h=g; g=f; f=e; e=(d + t1) >>> 0; d=c; c=b; b=a; a=(t1 + t2) >>> 0;
+      }
+      H[0]=(H[0]+a)>>>0; H[1]=(H[1]+b)>>>0; H[2]=(H[2]+c)>>>0; H[3]=(H[3]+d)>>>0;
+      H[4]=(H[4]+e)>>>0; H[5]=(H[5]+f)>>>0; H[6]=(H[6]+g)>>>0; H[7]=(H[7]+h)>>>0;
+    }
+    var out = "";
+    for(i=0;i<H.length;i++){ out += ("00000000" + H[i].toString(16)).slice(-8); }
+    return out;
+  }
 
   // Guess a MIME type from the filename extension so the download opens in the right app.
   function mimeFromName(name){
@@ -12525,9 +12580,10 @@ var qrcode = function() {
   function beep(){ try{ if(navigator.vibrate) navigator.vibrate(60); }catch(e){} }
 
   function resetAll(){
-    store = {}; fileId = null; total = 0; fileName = "transfer.bin"; downloaded = false;
+    store = {}; fileId = null; total = 0; fileName = "transfer.bin"; expectedBytes = null; expectedHash = ""; downloaded = false;
     progress.style.display = 'none';
     grid.innerHTML = ''; barfill.style.width = '0';
+    missingline.textContent = ''; verifiedBadge.style.display = 'none';
     downloadBtn.disabled = true;
     statusline.textContent = 'Waiting for first page…';
     fileline.textContent = ''; statusline.className = 'big';
@@ -12543,6 +12599,16 @@ var qrcode = function() {
     }
   }
 
+  function missingText(){
+    if(!total) return "";
+    var missing = [];
+    for(var i=1;i<=total;i++){ if(store[i]===undefined) missing.push(i); }
+    if(!missing.length) return "All pages captured. Verifying now.";
+    var shown = missing.slice(0, 18).join(', ');
+    if(missing.length > 18){ shown += ', +' + (missing.length - 18) + ' more'; }
+    return "Missing: " + shown;
+  }
+
   function refresh(){
     progress.style.display = 'block';
     var have = Object.keys(store).length;
@@ -12555,36 +12621,99 @@ var qrcode = function() {
       statusline.textContent = '✅ All ' + total + ' pages captured';
       if(!downloaded){ downloaded = true; doDownload(); }   // auto-save, no tap needed
     }
-    fileline.textContent = 'file: ' + fileName + '   ·   id ' + (fileId||'?');
+    fileline.textContent = 'file: ' + fileName + (expectedBytes !== null ? '   ·   ' + expectedBytes + ' bytes' : '') + '   ·   id ' + (fileId||'?');
+    missingline.textContent = missingText();
     downloadBtn.disabled = !(total>0 && have===total);
   }
 
-  // Parse "QRT2|fileId|page|total|b64name|<base64 data…>" (base64 has no '|', but slice remainder anyway)
-  function parseFrame(t){
-    if(t.slice(0,5) !== 'QRT2|') return null;
-    var s = 5, fields = [], i;
-    for(var k=0;k<4;k++){
+  function splitFrame(t, prefix, fieldCount){
+    if(t.slice(0, prefix.length) !== prefix) return null;
+    var s = prefix.length, fields = [], i;
+    for(var k=0;k<fieldCount;k++){
       i = t.indexOf('|', s);
       if(i < 0) return null;
       fields.push(t.slice(s, i));
       s = i+1;
     }
-    fields.push(t.slice(s)); // payload = remainder
-    return { id:fields[0], page:parseInt(fields[1],10), total:parseInt(fields[2],10), name:fields[3], data:fields[4] };
+    fields.push(t.slice(s));
+    return fields;
+  }
+
+  function parseWhole(value){
+    if(!/^\d+$/.test(value)) return NaN;
+    return parseInt(value, 10);
+  }
+
+  // QRT4 adds visual padding after the real chunk. QRT3/QRT2 remain readable for old senders.
+  function parseFrame(t){
+    var fields, dataLen;
+    if(t.slice(0,5) === 'QRT4|'){
+      fields = splitFrame(t, 'QRT4|', 7);
+      if(!fields) return null;
+      if(!/^\d+$/.test(fields[6])) return null;
+      dataLen = parseInt(fields[6],10);
+      if(!isFinite(dataLen) || dataLen < 0 || dataLen > MAX_FRAME_DATA || dataLen > fields[7].length) return null;
+      return {
+        id:fields[0],
+        page:parseWhole(fields[1]),
+        total:parseWhole(fields[2]),
+        name:fields[3],
+        bytes:parseWhole(fields[4]),
+        hash:(fields[5] || '').toLowerCase(),
+        data:fields[7].slice(0, dataLen)
+      };
+    }
+    if(t.slice(0,5) === 'QRT3|'){
+      fields = splitFrame(t, 'QRT3|', 6);
+      if(!fields) return null;
+      return {
+        id:fields[0],
+        page:parseWhole(fields[1]),
+        total:parseWhole(fields[2]),
+        name:fields[3],
+        bytes:parseWhole(fields[4]),
+        hash:(fields[5] || '').toLowerCase(),
+        data:fields[6]
+      };
+    }
+    if(t.slice(0,5) === 'QRT2|'){
+      fields = splitFrame(t, 'QRT2|', 4);
+      if(!fields) return null;
+      return { id:fields[0], page:parseWhole(fields[1]), total:parseWhole(fields[2]), name:fields[3], bytes:null, hash:"", data:fields[4] };
+    }
+    return null;
+  }
+
+  function validFrame(f){
+    if(!f || !f.id || f.id.length > 64 || f.name.length > 1024) return false;
+    if(!f.page || !f.total || Math.floor(f.page) !== f.page || Math.floor(f.total) !== f.total) return false;
+    if(f.page > f.total || f.page < 1 || f.total > MAX_PAGES) return false;
+    if(typeof f.data !== 'string' || f.data.length > MAX_FRAME_DATA) return false;
+    if(f.bytes !== null && (!isFinite(f.bytes) || f.bytes < 0 || Math.floor(f.bytes) !== f.bytes || f.bytes > MAX_RECEIVE_BYTES)) return false;
+    if(f.hash && !/^[0-9a-f]{64}$/.test(f.hash)) return false;
+    return true;
   }
 
   function handle(text){
     var f = parseFrame(text);
-    if(!f) return; // ignore any QR that isn't a qrbeam frame
-    if(!f.page || !f.total || f.page > f.total) return;
+    if(!validFrame(f)) return; // ignore anything that is not a safe qrbeam frame
+    if(fileId !== null && f.id === fileId){
+      if(f.total !== total) return;
+      if(expectedHash && f.hash && f.hash !== expectedHash) return;
+    }
     if(f.id !== fileId){           // new file started → reset
-      store = {}; fileId = f.id; total = f.total; fileName = decodeName(f.name); downloaded = false;
+      store = {}; fileId = f.id; total = f.total; fileName = decodeName(f.name);
+      expectedBytes = f.bytes; expectedHash = f.hash || ""; downloaded = false;
+      verifiedBadge.style.display = 'none';
       drawGrid();
     }
     if(store[f.page] === undefined){
       store[f.page] = f.data;
       var cell = grid.children[f.page-1];
-      if(cell){ cell.className = 'cell have'; }
+      if(cell){
+        cell.className = 'cell have flash';
+        setTimeout(function(el){ if(el){ el.classList.remove('flash'); } }, 180, cell);
+      }
       beep();
     }
     refresh();
@@ -12592,7 +12721,9 @@ var qrcode = function() {
 
   function loop(){
     if(!scanning) return;
-    if(video.readyState === video.HAVE_ENOUGH_DATA){
+    var now = Date.now();
+    if(now - lastDecodeAt >= DECODE_INTERVAL && video.readyState === video.HAVE_ENOUGH_DATA){
+      lastDecodeAt = now;
       var vw = video.videoWidth, vh = video.videoHeight;
       // Downscale for speed on phones, keep enough detail for dense QRs
       var scale = Math.min(1, 800 / Math.max(vw, vh));
@@ -12605,28 +12736,68 @@ var qrcode = function() {
         if(code && code.data){ handle(code.data); }
       }
     }
-    requestAnimationFrame(loop);
+    if(scanning){ rafId = requestAnimationFrame(loop); }
   }
 
   function startCamera(){
+    if(startingCamera || scanning) return;
     camerr.style.display = 'none';
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       camerr.style.display='block';
       camerr.textContent = 'This browser blocks camera access. Make sure the page is opened over https:// (it is on Netlify).';
       return;
     }
+    startingCamera = true;
+    var token = ++cameraToken;
+    startBtn.disabled = true;
+    startBtn.textContent = 'Starting camera…';
     navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' } }, audio:false })
       .then(function(s){
-        stream = s; video.srcObject = s; videowrap.style.display='block';
-        camhint.textContent = 'Aim at the QR codes cycling on the PC screen — hold steady until every page turns green.';
-        startBtn.style.display = 'none';
+        if(token !== cameraToken){
+          s.getTracks().forEach(function(t){ t.stop(); });
+          return null;
+        }
+        stream = s; video.srcObject = s;
         return video.play();
       })
-      .then(function(){ scanning = true; progress.style.display='block'; requestAnimationFrame(loop); })
+      .then(function(){
+        if(token !== cameraToken || !stream) return;
+        startingCamera = false;
+        startBtn.disabled = false; startBtn.textContent = '▶ Start camera';
+        videowrap.style.display='block';
+        camhint.textContent = 'Aim at the QR codes cycling on the PC screen — hold steady until every page turns green.';
+        startBtn.style.display = 'none'; stopBtn.style.display = '';
+        scanning = true; lastDecodeAt = 0; progress.style.display='block';
+        rafId = requestAnimationFrame(loop);
+      })
       .catch(function(err){
+        if(token !== cameraToken) return;
+        if(stream){ stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+        video.pause(); video.srcObject = null; videowrap.style.display = 'none';
+        startingCamera = false;
+        startBtn.disabled = false; startBtn.textContent = '▶ Start camera'; startBtn.style.display = '';
+        stopBtn.style.display = 'none';
         camerr.style.display='block';
         camerr.textContent = 'Camera error: ' + (err && err.name ? err.name : err) + '. Check you allowed camera permission.';
       });
+  }
+
+  function stopCamera(){
+    cameraToken++;
+    startingCamera = false;
+    scanning = false;
+    if(rafId !== null && window.cancelAnimationFrame){ window.cancelAnimationFrame(rafId); }
+    rafId = null;
+    if(stream){
+      stream.getTracks().forEach(function(t){ t.stop(); });
+      stream = null;
+    }
+    video.pause();
+    video.srcObject = null;
+    videowrap.style.display = 'none';
+    startBtn.disabled = false; startBtn.textContent = '▶ Start camera'; startBtn.style.display = '';
+    stopBtn.style.display = 'none';
+    camhint.textContent = 'Camera stopped. Tap Start camera to scan again.';
   }
 
   function doDownload(){
@@ -12635,24 +12806,46 @@ var qrcode = function() {
     var bytes, blob;
     try{
       bytes = b64ToBytes(parts.join(''));           // reassemble base64 → raw bytes
-      blob = new Blob([bytes], { type: mimeFromName(fileName) });
     }catch(e){
       statusline.className = 'big warn';
       statusline.textContent = '⚠ Decode failed — a page may be corrupt. Tap Reset and re-scan.';
+      verifiedBadge.style.display = 'none';
       return;
     }
+    if(expectedBytes !== null && bytes.length !== expectedBytes){
+      statusline.className = 'big warn';
+      statusline.textContent = '⚠ Size check failed. Tap Reset and re-scan.';
+      verifiedBadge.style.display = 'none';
+      return;
+    }
+    if(expectedHash){
+      statusline.className = 'big';
+      statusline.textContent = 'Verifying exact copy…';
+      if(sha256Hex(bytes) !== expectedHash){
+        statusline.className = 'big warn';
+        statusline.textContent = '⚠ Hash check failed. Tap Reset and re-scan.';
+        verifiedBadge.style.display = 'none';
+        return;
+      }
+    }
+    if(expectedHash){ verifiedBadge.style.display = 'inline-block'; }
+    blob = new Blob([bytes], { type: mimeFromName(fileName) });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url; a.download = fileName || 'transfer.bin';
     document.body.appendChild(a); a.click();
     setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
     statusline.className = 'big ok';
-    statusline.textContent = '✅ Saved to your Downloads: ' + fileName;
+    statusline.textContent = expectedHash ? '✅ Verified — download started: ' + fileName : '✅ Download started: ' + fileName;
+    stopCamera();
+    camhint.textContent = 'Transfer complete. Camera stopped automatically. Tap Download file if nothing appeared.';
   }
 
   startBtn.addEventListener('click', startCamera);
+  stopBtn.addEventListener('click', stopCamera);
   downloadBtn.addEventListener('click', doDownload);
   resetBtn.addEventListener('click', function(){ resetAll(); });
+  window.addEventListener('pagehide', stopCamera);
 
   // "Open on your phone" QR of this page's URL
   try{
