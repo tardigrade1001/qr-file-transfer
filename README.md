@@ -19,7 +19,7 @@ qrbeam has two halves that never share a network. The only link is a camera look
 | **Sender** | `sender/QR-Transfer.html` | A single offline HTML file. Runs on the source machine straight from disk by double-click, with no install and no internet. Reads any file, Base64-encodes it, splits it into chunks, and shows the chunks as QR codes (one at a time, or an auto-cycling loop). |
 | **Receiver** | `receiver/index.html` | A hosted web app (HTTPS, for camera access). Open it on a phone or laptop, point the camera at the sender screen, and it catches every page, skips duplicates, reassembles the file, and auto-downloads it with the correct name and type. |
 
-Each QR carries a small header, `QRT2|fileId|page|total|filename|data`, so the receiver can order the chunks, skip duplicates already seen, know when the full set has arrived, and reset cleanly when a new file starts.
+Each QR carries a small header, `QRT4|fileId|page|total|filename|bytes|sha256|dataLength|data`, so the receiver can order the chunks, skip duplicates already seen, know when the full set has arrived, and reset cleanly when a new file starts. The byte count and SHA-256 hash let the receiver confirm it rebuilt the exact file before saving. Later pages are padded after the real data so every QR in a batch stays the same visual size.
 
 ```
 [ offline PC ]                         [ phone / laptop ]
@@ -47,15 +47,17 @@ qrbeam is that taken seriously. The offline machine paints the file across a han
 
 ## Usage
 
+Share the tool by sending people to **https://getqrbeam.netlify.app**. The page has the receiver and a **Download offline sender** button, so users do not need to visit GitHub.
+
 **On the source machine (offline):**
-1. Open `sender/QR-Transfer.html` by double-click. It works with no internet.
+1. Save the offline sender HTML from the live receiver page, then open it on the source machine by double-click. Once saved, it works with no internet.
 2. **① Open the receiver.** Scan the QR at the top with a phone or laptop to open `getqrbeam.netlify.app` there.
 3. **② Pick the file** by drag and drop or browse. Up to about 50 KB, best under about 20 KB.
 4. **③ Build**, then press **⛶ Fullscreen** so the QR fills the screen.
 
 **On the phone or laptop:**
 5. On the receiver, tap **Start camera** and aim at the sender screen.
-6. Watch the page grid fill in. Once every page is captured, the file downloads automatically.
+6. Watch the page grid fill in. Once every page is captured, the receiver verifies the file and downloads it automatically.
 
 > **Laptop trick:** open the receiver on a laptop and point the webcam at the offline PC screen. The file lands straight in the laptop Downloads folder. No phone needed.
 
@@ -70,6 +72,7 @@ Browser camera access (`getUserMedia`) requires HTTPS, so the receiver runs on a
 ## Limits
 
 - **Small files.** QR is a low-bandwidth channel. Comfortable up to tens of KB. A 50 KB file becomes about 35 to 48 QR pages, roughly a minute of auto-play capture.
+- **100 KB safety ceiling.** The sender refuses larger files so an accidental selection cannot bog down an old source PC. For a pleasant transfer, staying under about 20 KB is still best.
 - **Binary works, with inflation.** Non-text files get Base64-encoded, adding about 33%. Text, CSV, and JSON sit in the sweet spot. Images, xlsx, and pdf work while small.
 - **Convenience escape hatch.** This suits quick, small transfers. Large or bulk-sensitive moves want a real channel.
 
@@ -80,7 +83,9 @@ Browser camera access (`getUserMedia`) requires HTTPS, so the receiver runs on a
 - Pure HTML, CSS, and JavaScript. Zero build step, zero framework, no external calls. Everything is inlined so both halves work offline.
 - QR **encoding**: [`qrcode-generator`](https://github.com/kazuhikoarase/qrcode-generator) by Kazuhiko Arase (MIT).
 - QR **decoding**: [`jsQR`](https://github.com/cozmo/jsQR) (Apache-2.0).
-- Verified byte-exact round-trip on binary, PNG, and UTF-8 text using shuffled and duplicated frames.
+- Receiver verifies byte size and SHA-256 before saving. Round-trip tests cover binary, PNG, and UTF-8 text using shuffled and duplicated frames.
+
+Run the protocol tests with `node tests/protocol-roundtrip.test.js`.
 
 ---
 
@@ -91,12 +96,15 @@ qrbeam/
 ├── sender/
 │   └── QR-Transfer.html   # offline sender, run on the source machine
 ├── receiver/
-│   └── index.html         # hosted receiver, deploy this folder (Netlify, etc.)
+│   ├── index.html         # hosted receiver, deploy this folder (Netlify, etc.)
+│   └── QR-Transfer.html   # deploy copy of the offline sender, offered as a direct download
+├── tests/
+│   └── protocol-roundtrip.test.js
 ├── README.md
 └── LICENSE
 ```
 
-Deploy the **`receiver`** folder to any static host with HTTPS. The receiver URL sits in one line near the top of the sender script (`RECEIVER_URL`).
+Deploy the **`receiver`** folder to any static host with HTTPS. The receiver URL sits in one line near the top of the sender script (`RECEIVER_URL`). If you edit the sender, copy `sender/QR-Transfer.html` to `receiver/QR-Transfer.html` before deploying.
 
 ---
 
