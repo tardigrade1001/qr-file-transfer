@@ -140,7 +140,7 @@ qrbeam/
 └── LICENSE
 ```
 
-Deploy the **`receiver`** folder to any static host with HTTPS. The receiver URL sits in one line near the top of the sender script (`RECEIVER_URL`). If you edit the sender, copy `sender/QR-Transfer.html` to `receiver/QR-Transfer.html` before deploying.
+Deploy the **`receiver`** folder to any static host with HTTPS. The receiver URL sits in one line near the top of the sender script (`RECEIVER_URL`). If you edit the sender, run `sh sync-sender.sh` to copy it into `receiver/QR-Transfer.html` before deploying, so the hosted "Download offline sender" button serves the current build.
 
 ---
 
