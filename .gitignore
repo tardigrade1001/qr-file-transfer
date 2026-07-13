@@ -10,4 +10,7 @@ desktop.ini
 scratch/
 *.log
 node_modules/
+
+# unrelated project that shares this folder locally (do not commit here)
+comfyui_activity_analysis/
 _backups/
