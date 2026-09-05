@@ -1,10 +1,10 @@
 # 📡 qrbeam
 
-**Beam a small file from one screen to another device by QR code. No cable, no USB, no app, no network between the two machines.**
+**Beam a small file from one screen to another device by QR code. A camera and a screen are the whole link.**
 
 🔗 **Live receiver:** https://getqrbeam.netlify.app
 
-qrbeam moves a file off an offline or locked-down computer (no USB slot free, no shared network, no way to install anything) by turning it into a stream of QR codes on screen. Any phone or laptop camera reads the stream and reassembles it back into the original file.
+qrbeam moves a file off an offline or locked-down computer, one where every USB slot is taken, the network is separate and installing software is off the table, by turning the file into a stream of QR codes on screen. Any phone or laptop camera reads the stream and reassembles it back into the original file.
 
 The first use was pulling data exports off an air-gapped Windows 7 lab instrument after a forgotten USB stick. It works for any small file on any machine.
 
@@ -44,11 +44,11 @@ The first use was pulling data exports off an air-gapped Windows 7 lab instrumen
 
 ## How it works
 
-qrbeam has two halves that never share a network. The only link is a camera looking at a screen.
+qrbeam has two halves that stay on separate networks. The one link is a camera looking at a screen.
 
 | | | |
 |---|---|---|
-| **Sender** | `sender/QR-Transfer.html` | A single offline HTML file. Runs on the source machine straight from disk by double-click, with no install and no internet. Reads any file, Base64-encodes it, splits it into chunks, and shows the chunks as QR codes (one at a time, or an auto-cycling loop). |
+| **Sender** | `sender/QR-Transfer.html` | A single offline HTML file. Runs on the source machine straight from disk by double-click, install-free and fully offline. Reads any file, Base64-encodes it, splits it into chunks, and shows the chunks as QR codes (one at a time, or an auto-cycling loop). |
 | **Receiver** | `receiver/index.html` | A hosted web app (HTTPS, for camera access). Open it on a phone or laptop, point the camera at the sender screen, and it catches every page, skips duplicates, reassembles the file, and auto-downloads it with the correct name and type. |
 
 Each QR carries a small header, `QRT4|fileId|page|total|filename|bytes|sha256|dataLength|data`, so the receiver can order the chunks, skip duplicates already seen, know when the full set has arrived, and reset cleanly when a new file starts. The byte count and SHA-256 hash let the receiver confirm it rebuilt the exact file before saving. Later pages are padded after the real data so every QR in a batch stays the same visual size.
@@ -67,22 +67,22 @@ Each QR carries a small header, `QRT4|fileId|page|total|filename|bytes|sha256|da
 
 *(the origin story, for the curious)*
 
-The lab has a Hitachi F-4600 fluorescence spectrophotometer on a Windows 7 PC that stays off the network, has no free USB port, and that IT would rather nobody touch. Data left that machine on a USB stick, carried by hand.
+The lab has a Hitachi F-4600 fluorescence spectrophotometer on a Windows 7 PC that stays off the network, has every USB port occupied, and that IT would rather leave alone. Data left that machine on a USB stick, carried by hand.
 
 One evening a run finished and the stick was gone from the pocket. It sat at a desk across the building. The data was a 7 KB text file, right there on the screen, and reaching it meant a walk both ways for a cable.
 
-The idea came from an earlier build, a small membership website ([kalyanparisad.in](https://kalyanparisad.in)) that draws a UPI payment QR in the browser from a line of text. A QR is text rendered as a picture, made on the spot, no image file anywhere. That scales. Many QR codes in sequence can carry a whole file. The screen was already there. A phone camera was already there.
+The idea came from an earlier build, a small membership website ([kalyanparisad.in](https://kalyanparisad.in)) that draws a UPI payment QR in the browser from a line of text. A QR is text rendered as a picture, made on the spot, with the image existing only on screen. That scales. Many QR codes in sequence can carry a whole file. The screen was already there. A phone camera was already there.
 
-qrbeam is that taken seriously. The offline machine paints the file across a handful of QR codes, a camera reads them back, and the file reassembles on the far side. No USB. No network between the two. Nothing installed on the locked-down PC.
+qrbeam is that taken seriously. The offline machine paints the file across a handful of QR codes, a camera reads them back, and the file reassembles on the far side. Camera and screen alone, with the locked-down PC left exactly as it was.
 
 > For the other escape hatch on the same instrument, reading the proprietary binary files straight off disk, see [**spectrex**](https://github.com/tardigrade1001/spectrex).
 
 ## Usage
 
-Share the tool by sending people to **https://getqrbeam.netlify.app**. The page has the receiver and a **Download offline sender** button, so users do not need to visit GitHub.
+Share the tool by sending people to **https://getqrbeam.netlify.app**. The page has the receiver and a **Download offline sender** button, so everything is available from there.
 
 **On the source machine (offline):**
-1. Save the offline sender HTML from the live receiver page, then open it on the source machine by double-click. Once saved, it works with no internet.
+1. Save the offline sender HTML from the live receiver page, then open it on the source machine by double-click. Once saved, it works fully offline.
 2. **① Open the receiver.** Scan the QR at the top with a phone or laptop to open `getqrbeam.netlify.app` there.
 3. **② Pick the file** by drag and drop or browse. Up to about 50 KB, best under about 20 KB.
 4. **③ Build**, then press **⛶ Fullscreen** so the QR fills the screen.
@@ -91,28 +91,28 @@ Share the tool by sending people to **https://getqrbeam.netlify.app**. The page 
 5. On the receiver, tap **Start camera** and aim at the sender screen.
 6. Watch the page grid fill in. Once every page is captured, the receiver verifies the file and downloads it automatically.
 
-> **Laptop trick:** open the receiver on a laptop and point the webcam at the offline PC screen. The file lands straight in the laptop Downloads folder. No phone needed.
+> **Laptop trick:** open the receiver on a laptop and point the webcam at the offline PC screen. The file lands straight in the laptop Downloads folder, using the built-in webcam.
 
 ---
 
 ## Why a hosted receiver?
 
-Browser camera access (`getUserMedia`) requires HTTPS, so the receiver runs on a served page such as Netlify. A local file cannot open the camera. The sender stays fully offline. The offline machine never needs internet. Only the screen gets read.
+Browser camera access (`getUserMedia`) requires HTTPS, so the receiver runs on a served page such as Netlify. A served page is what grants camera access. The sender stays fully offline, and the screen is all that gets read.
 
 ---
 
 ## Limits
 
 - **Small files.** QR is a low-bandwidth channel. Comfortable up to tens of KB. A 50 KB file becomes about 35 to 48 QR pages, roughly a minute of auto-play capture.
-- **100 KB safety ceiling.** The sender refuses larger files so an accidental selection cannot bog down an old source PC. For a pleasant transfer, staying under about 20 KB is still best.
-- **Binary works, with inflation.** Non-text files get Base64-encoded, adding about 33%. Text, CSV, and JSON sit in the sweet spot. Images, xlsx, and pdf work while small.
+- **100 KB safety ceiling.** The sender refuses larger files, which keeps an accidental selection from bogging down an old source PC. For a pleasant transfer, stay under about 20 KB.
+- **Binary works, with inflation.** Non-text files get Base64-encoded, adding about 33%. Text, CSV, and JSON sit in the sweet spot. Images, xlsx, and pdf work at small sizes.
 - **Convenience escape hatch.** This suits quick, small transfers. Large or bulk-sensitive moves want a real channel.
 
 ---
 
 ## Tech
 
-- Pure HTML, CSS, and JavaScript. Zero build step, zero framework, no external calls. Everything is inlined so both halves work offline.
+- Pure HTML, CSS, and JavaScript. Zero build step, zero framework, zero external calls. Everything is inlined so both halves work offline.
 - QR **encoding**: [`qrcode-generator`](https://github.com/kazuhikoarase/qrcode-generator) by Kazuhiko Arase (MIT).
 - QR **decoding**: [`jsQR`](https://github.com/cozmo/jsQR) (Apache-2.0).
 - Receiver verifies byte size and SHA-256 before saving. Round-trip tests cover binary, PNG, and UTF-8 text using shuffled and duplicated frames.
